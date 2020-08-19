@@ -44,6 +44,11 @@ namespace Melanchall.DryWetMidi.Interaction
             return ProgramNumber;
         }
 
+        public override string ToString()
+        {
+            return $"{base.ToString()}: program #{ProgramNumber}";
+        }
+
         #endregion
     }
 }

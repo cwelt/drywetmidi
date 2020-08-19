@@ -54,6 +54,11 @@ namespace Melanchall.DryWetMidi.Interaction
             return HalfSteps * 100 + Cents;
         }
 
+        public override string ToString()
+        {
+            return $"{base.ToString()}: {HalfSteps} half-steps, {Cents} cents";
+        }
+
         #endregion
     }
 }

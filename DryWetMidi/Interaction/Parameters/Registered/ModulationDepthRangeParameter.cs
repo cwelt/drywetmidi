@@ -80,7 +80,12 @@ namespace Melanchall.DryWetMidi.Interaction
             // TODO: find what is increment
             throw new NotImplementedException();
         }
-        
+
+        public override string ToString()
+        {
+            return $"{base.ToString()}: {HalfSteps} half-steps, {Cents} cents";
+        }
+
         #endregion
     }
 }

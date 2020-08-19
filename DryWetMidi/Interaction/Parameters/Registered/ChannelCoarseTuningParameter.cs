@@ -81,6 +81,11 @@ namespace Melanchall.DryWetMidi.Interaction
             return GetSteps();
         }
 
+        public override string ToString()
+        {
+            return $"{base.ToString()}: {HalfSteps} half-steps";
+        }
+
         #endregion
     }
 }

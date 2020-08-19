@@ -79,6 +79,11 @@ namespace Melanchall.DryWetMidi.Interaction
                 Time));
         }
 
+        public override string ToString()
+        {
+            return $"RPN {ParameterType} set to {ValueType}";
+        }
+
         #endregion
     }
 }

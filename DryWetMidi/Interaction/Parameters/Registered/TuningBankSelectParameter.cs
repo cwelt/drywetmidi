@@ -47,6 +47,11 @@ namespace Melanchall.DryWetMidi.Interaction
             return BankNumber;
         }
 
+        public override string ToString()
+        {
+            return $"{base.ToString()}: bank #{BankNumber}";
+        }
+
         #endregion
     }
 }

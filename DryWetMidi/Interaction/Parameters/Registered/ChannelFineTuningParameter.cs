@@ -85,6 +85,11 @@ namespace Melanchall.DryWetMidi.Interaction
             return GetSteps();
         }
 
+        public override string ToString()
+        {
+            return $"{base.ToString()}: {Cents} cents";
+        }
+
         #endregion
     }
 }
