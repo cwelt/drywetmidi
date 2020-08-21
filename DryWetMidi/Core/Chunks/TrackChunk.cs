@@ -248,7 +248,7 @@ namespace Melanchall.DryWetMidi.Core
             //
 
             if (midiEvent != null)
-                midiEvent.DeltaTime = deltaTime;
+                midiEvent._deltaTime = deltaTime;
 
             return midiEvent;
         }
