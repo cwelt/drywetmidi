@@ -4,6 +4,7 @@ using Melanchall.DryWetMidi.Interaction;
 
 namespace Melanchall.DryWetMidi.Tools
 {
+    // TODO: add rpn/nrpn; rework time/length setting API
     internal static class TimeSetter
     {
         #region Constants
@@ -13,7 +14,8 @@ namespace Melanchall.DryWetMidi.Tools
             {
                 [typeof(TimedEvent)] = (obj, time) => ((TimedEvent)obj).Time = time,
                 [typeof(Note)] = (obj, time) => ((Note)obj).Time = time,
-                [typeof(Chord)] = (obj, time) => ((Chord)obj).Time = time
+                [typeof(Chord)] = (obj, time) => ((Chord)obj).Time = time,
+                [typeof(RegisteredParameter)] = (obj, time) => ((RegisteredParameter)obj).Time = time,
             };
 
         #endregion
