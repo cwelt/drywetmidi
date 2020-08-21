@@ -5,6 +5,7 @@ namespace Melanchall.DryWetMidi.Core
     /// <summary>
     /// Specifies how writing engine should compress MIDI data. The default is <see cref="NoCompression"/>.
     /// </summary>
+    [Obsolete("API is obsolete and will be removed in future releases. Please use properties of WritingSettings to set specific flags.")]
     [Flags]
     public enum CompressionPolicy
     {
