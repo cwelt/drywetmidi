@@ -15,9 +15,10 @@ namespace Melanchall.DryWetMidi.Core
 
         private readonly ReaderSettings _settings;
 
-        private readonly BinaryReader _binaryReader;
         private readonly bool _isStreamWrapped;
         private readonly MemoryStream _allDataBuffer;
+
+        private readonly Stream _stream;
 
         private bool _disposed;
 
@@ -64,7 +65,7 @@ namespace Melanchall.DryWetMidi.Core
                 stream = _allDataBuffer;
             }
 
-            _binaryReader = new BinaryReader(stream, SmfConstants.DefaultTextEncoding, leaveOpen: true);
+            _stream = stream;
         }
 
         #endregion
@@ -78,8 +79,8 @@ namespace Melanchall.DryWetMidi.Core
         /// <exception cref="ObjectDisposedException">Property was called after the reader was disposed.</exception>
         public long Position
         {
-            get { return _binaryReader.BaseStream.Position; }
-            set { _binaryReader.BaseStream.Position = value; }
+            get { return _stream.Position; }
+            set { _stream.Position = value; }
         }
 
         /// <summary>
@@ -92,38 +93,11 @@ namespace Melanchall.DryWetMidi.Core
         /// </summary>
         /// <exception cref="IOException">An I/O error occurred on the underlying stream.</exception>
         /// <exception cref="ObjectDisposedException">Property was called after the reader was disposed.</exception>
-        public bool EndReached => Position >= Length || (_isStreamWrapped && ((StreamWrapper)_binaryReader.BaseStream).IsEndReached());
+        public bool EndReached => Position >= Length || (_isStreamWrapped && ((StreamWrapper)_stream).IsEndReached());
 
         #endregion
 
         #region Methods
-
-        /// <summary>
-        /// Reads all remaining bytes from the underlying stream and moves the current position
-        /// to the stream's end.
-        /// </summary>
-        /// <returns>All bytes read from the underlying stream.</returns>
-        /// <exception cref="EndOfStreamException">The end of the underlying stream is reached.</exception>
-        /// <exception cref="ObjectDisposedException">Method was called after the reader was disposed.</exception>
-        /// <exception cref="IOException">An I/O error occurred on the underlying stream.</exception>
-        public byte[] ReadAllBytes()
-        {
-            const int bufferSize = 512;
-
-            using (var memoryStream = new MemoryStream())
-            {
-                var buffer = new byte[bufferSize];
-
-                int count;
-                while ((count = _binaryReader.Read(buffer, 0, buffer.Length)) != 0)
-                {
-                    memoryStream.Write(buffer, 0, count);
-                }
-
-                return memoryStream.ToArray();
-            }
-
-        }
 
         /// <summary>
         /// Reads a byte from the underlying stream and advances the current position by one byte.
@@ -134,7 +108,11 @@ namespace Melanchall.DryWetMidi.Core
         /// <exception cref="IOException">An I/O error occurred on the underlying stream.</exception>
         public byte ReadByte()
         {
-            return _binaryReader.ReadByte();
+            var result = _stream.ReadByte();
+            if (result < 0)
+                throw new EndOfStreamException();
+
+            return (byte)result;
         }
 
         /// <summary>
@@ -146,7 +124,7 @@ namespace Melanchall.DryWetMidi.Core
         /// <exception cref="IOException">An I/O error occurred on the underlying stream.</exception>
         public sbyte ReadSByte()
         {
-            return _binaryReader.ReadSByte();
+            return (sbyte)ReadByte();
         }
 
         /// <summary>
@@ -168,7 +146,7 @@ namespace Melanchall.DryWetMidi.Core
 
                 while (count > 0)
                 {
-                    var bytes = _binaryReader.ReadBytes(Math.Min(count, _settings.NonSeekableStreamIncrementalBytesReadingStep));
+                    var bytes = ReadBytesInternal(Math.Min(count, _settings.NonSeekableStreamIncrementalBytesReadingStep));
                     if (bytes.Length == 0)
                         break;
 
@@ -179,7 +157,7 @@ namespace Melanchall.DryWetMidi.Core
                 return bytesList.SelectMany(bytes => bytes).ToArray();
             }
 
-            return _binaryReader.ReadBytes(count);
+            return ReadBytesInternal(count);
         }
 
         /// <summary>
@@ -250,8 +228,8 @@ namespace Melanchall.DryWetMidi.Core
         /// <exception cref="IOException">An I/O error occurred on the underlying stream.</exception>
         public string ReadString(int count)
         {
-            var chars = _binaryReader.ReadChars(count);
-            return new string(chars);
+            var bytes = ReadBytesInternal(count);
+            return SmfConstants.DefaultTextEncoding.GetString(bytes);
         }
 
         /// <summary>
@@ -328,6 +306,35 @@ namespace Melanchall.DryWetMidi.Core
             return (uint)((bytes[0] << 16) + (bytes[1] << 8) + bytes[2]);
         }
 
+        private byte[] ReadBytesInternal(int count)
+        {
+            if (count == 0)
+                return new byte[0];
+
+            var result = new byte[count];
+            var totalReadBytesCount = 0;
+
+            do
+            {
+                var readBytesCount = _stream.Read(result, totalReadBytesCount, count);
+                if (readBytesCount == 0)
+                    break;
+
+                totalReadBytesCount += readBytesCount;
+                count -= readBytesCount;
+            }
+            while (count > 0);
+
+            if (totalReadBytesCount != result.Length)
+            {
+                var copy = new byte[totalReadBytesCount];
+                Buffer.BlockCopy(result, 0, copy, 0, totalReadBytesCount);
+                result = copy;
+            }
+
+            return result;
+        }
+
         #endregion
 
         #region IDisposable
@@ -348,7 +355,6 @@ namespace Melanchall.DryWetMidi.Core
             if (disposing)
             {
                 _allDataBuffer?.Dispose();
-                _binaryReader.Dispose();
             }
 
             _disposed = true;
