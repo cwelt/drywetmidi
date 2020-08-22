@@ -20,7 +20,7 @@ namespace Melanchall.DryWetMidi.Core
 
         private readonly Stream _stream;
 
-        private readonly bool _useBuffering;
+        private readonly bool _useFixedSizeBuffer;
         private readonly byte[] _buffer;
         private int _bufferSize;
         private int _bufferPosition;
@@ -63,10 +63,7 @@ namespace Melanchall.DryWetMidi.Core
                 _isStreamWrapped = true;
             }
 
-            // TODO: move below
-            Length = stream.Length;
-
-            if (settings.ReadFromMemory && !(stream is MemoryStream))
+            if (settings.BufferingPolicy == BufferingPolicy.BufferAllData && !(stream is MemoryStream))
             {
                 _allDataBuffer = new MemoryStream();
                 stream.CopyTo(_allDataBuffer);
@@ -75,9 +72,10 @@ namespace Melanchall.DryWetMidi.Core
             }
 
             _stream = stream;
+            Length = _stream.Length;
 
-            _useBuffering = _settings.UseBuffering && !_isStreamWrapped && !(_stream is MemoryStream);
-            if (_useBuffering)
+            _useFixedSizeBuffer = _settings.BufferingPolicy == BufferingPolicy.UseFixedSizeBuffer && !_isStreamWrapped && !(_stream is MemoryStream);
+            if (_useFixedSizeBuffer)
                 _buffer = new byte[_settings.BufferSize];
         }
 
@@ -92,10 +90,10 @@ namespace Melanchall.DryWetMidi.Core
         /// <exception cref="ObjectDisposedException">Property was called after the reader was disposed.</exception>
         public long Position
         {
-            get { return _useBuffering ? _position : _stream.Position; }
+            get { return _useFixedSizeBuffer ? _position : _stream.Position; }
             set
             {
-                if (_useBuffering)
+                if (_useFixedSizeBuffer)
                     _bufferPosition += (int)(value - _position);
                 else
                     _stream.Position = value;
@@ -129,7 +127,7 @@ namespace Melanchall.DryWetMidi.Core
         /// <exception cref="IOException">An I/O error occurred on the underlying stream.</exception>
         public byte ReadByte()
         {
-            if (_useBuffering)
+            if (_useFixedSizeBuffer)
             {
                 if (!EnsureBufferIsReadyForReading())
                     throw new EndOfStreamException();
@@ -344,7 +342,7 @@ namespace Melanchall.DryWetMidi.Core
             if (count == 0)
                 return new byte[0];
 
-            if (_useBuffering)
+            if (_useFixedSizeBuffer)
                 return ReadBytesWithBuffering(count);
             else
                 return ReadBytesWithoutBuffering(count);
