@@ -592,7 +592,7 @@ namespace Melanchall.DryWetMidi.Tests.Core
         {
             foreach (var filePath in TestFilesProvider.GetValidFilesPaths())
             {
-                var expectedMidiFile = MidiFile.Read(filePath, new ReadingSettings { ReaderSettings = new ReaderSettings { BufferingPolicy = BufferingPolicy.DontBufferData } });
+                var expectedMidiFile = MidiFile.Read(filePath, new ReadingSettings { ReaderSettings = new ReaderSettings { BufferingPolicy = BufferingPolicy.DontUseBuffer } });
                 var settings = new ReadingSettings();
                 settings.ReaderSettings.BufferingPolicy = BufferingPolicy.BufferAllData;
                 var midiFile = MidiFile.Read(filePath, settings);
@@ -605,7 +605,7 @@ namespace Melanchall.DryWetMidi.Tests.Core
         {
             foreach (var filePath in TestFilesProvider.GetValidFilesPaths())
             {
-                var expectedMidiFile = MidiFile.Read(filePath, new ReadingSettings { ReaderSettings = new ReaderSettings { BufferingPolicy = BufferingPolicy.DontBufferData } });
+                var expectedMidiFile = MidiFile.Read(filePath, new ReadingSettings { ReaderSettings = new ReaderSettings { BufferingPolicy = BufferingPolicy.DontUseBuffer } });
                 var settings = new ReadingSettings();
                 settings.ReaderSettings.BufferingPolicy = BufferingPolicy.UseFixedSizeBuffer;
                 var midiFile = MidiFile.Read(filePath, settings);
@@ -620,7 +620,7 @@ namespace Melanchall.DryWetMidi.Tests.Core
         private void ReadFilesWithException<TException>(string directoryName, ReadingSettings readingSettings)
             where TException : Exception
         {
-            readingSettings.ReaderSettings.BufferingPolicy = BufferingPolicy.DontBufferData;
+            readingSettings.ReaderSettings.BufferingPolicy = BufferingPolicy.DontUseBuffer;
 
             foreach (var filePath in TestFilesProvider.GetInvalidFilesPaths(directoryName))
             {
@@ -658,13 +658,13 @@ namespace Melanchall.DryWetMidi.Tests.Core
 
                 //
 
-                readingSettings.ReaderSettings.BufferingPolicy = BufferingPolicy.DontBufferData;
+                readingSettings.ReaderSettings.BufferingPolicy = BufferingPolicy.DontUseBuffer;
             }
         }
 
         private void ReadInvalidFiles(string directoryName, ReadingSettings readingSettings)
         {
-            readingSettings.ReaderSettings.BufferingPolicy = BufferingPolicy.DontBufferData;
+            readingSettings.ReaderSettings.BufferingPolicy = BufferingPolicy.DontUseBuffer;
 
             foreach (var filePath in TestFilesProvider.GetInvalidFilesPaths(directoryName))
             {
@@ -702,7 +702,7 @@ namespace Melanchall.DryWetMidi.Tests.Core
 
                 //
 
-                readingSettings.ReaderSettings.BufferingPolicy = BufferingPolicy.DontBufferData;
+                readingSettings.ReaderSettings.BufferingPolicy = BufferingPolicy.DontUseBuffer;
             }
         }
 

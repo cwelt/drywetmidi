@@ -436,17 +436,6 @@ namespace Melanchall.DryWetMidi.Core
                 return true;
             }
 
-            //if (_bufferPosition >= _bufferSize)
-            //{
-            //    if (_bufferSize < _buffer.Length)
-            //        throw new EndOfStreamException();
-
-            //    _stream.Position += _bufferPosition;
-            //    _isBufferDirty = true;
-
-            //    return EnsureBufferIsReadyForReading();
-            //}
-
             return _bufferSize > 0;
         }
 

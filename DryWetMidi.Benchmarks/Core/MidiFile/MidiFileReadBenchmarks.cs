@@ -36,7 +36,7 @@ namespace Melanchall.DryWetMidi.Benchmarks.Core
             public void Read()
             {
                 var settings = new ReadingSettings();
-                settings.ReaderSettings.BufferingPolicy = BufferingPolicy.DontBufferData;
+                settings.ReaderSettings.BufferingPolicy = BufferingPolicy.DontUseBuffer;
                 MidiFileReadBenchmarks.Read(FileFormat, FileSize, settings);
             }
 
