@@ -13,6 +13,8 @@ namespace Melanchall.DryWetMidi.Core
         private int _nonSeekableStreamBufferSize = 1024;
         private int _nonSeekableStreamIncrementalBytesReadingThreshold = 16384;
         private int _nonSeekableStreamIncrementalBytesReadingStep = 2048;
+        
+        private int _bufferSize = 4096;
 
         #endregion
 
@@ -89,6 +91,20 @@ namespace Melanchall.DryWetMidi.Core
         /// files is relatively small.</para>
         /// </remarks>
         public bool ReadFromMemory { get; set; }
+
+        // TODO: default true
+        public bool UseBuffering { get; set; } = false;
+
+        public int BufferSize
+        {
+            get { return _bufferSize; }
+            set
+            {
+                ThrowIfArgument.IsNonpositive(nameof(value), value, "Value is zero or negative.");
+
+                _bufferSize = value;
+            }
+        }
 
         #endregion
     }
