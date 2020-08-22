@@ -92,8 +92,7 @@ namespace Melanchall.DryWetMidi.Core
         /// </remarks>
         public bool ReadFromMemory { get; set; }
 
-        // TODO: default true
-        public bool UseBuffering { get; set; } = false;
+        public bool UseBuffering { get; set; } = true;
 
         public int BufferSize
         {

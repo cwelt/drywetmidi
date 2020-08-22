@@ -20,9 +20,11 @@ namespace Melanchall.DryWetMidi.Core
 
         private readonly Stream _stream;
 
+        private readonly bool _useBuffering;
         private readonly byte[] _buffer;
         private int _bufferSize;
         private int _bufferPosition;
+        private long _bufferStart = -1;
 
         private long _position;
 
@@ -74,7 +76,8 @@ namespace Melanchall.DryWetMidi.Core
 
             _stream = stream;
 
-            if (_settings.UseBuffering)
+            _useBuffering = _settings.UseBuffering && !_isStreamWrapped && !(_stream is MemoryStream);
+            if (_useBuffering)
                 _buffer = new byte[_settings.BufferSize];
         }
 
@@ -89,11 +92,11 @@ namespace Melanchall.DryWetMidi.Core
         /// <exception cref="ObjectDisposedException">Property was called after the reader was disposed.</exception>
         public long Position
         {
-            get { return _settings.UseBuffering ? _position : _stream.Position; }
+            get { return _useBuffering ? _position : _stream.Position; }
             set
             {
-                if (_settings.UseBuffering)
-                    throw new NotImplementedException();
+                if (_useBuffering)
+                    _bufferPosition += (int)(value - _position);
                 else
                     _stream.Position = value;
 
@@ -126,9 +129,14 @@ namespace Melanchall.DryWetMidi.Core
         /// <exception cref="IOException">An I/O error occurred on the underlying stream.</exception>
         public byte ReadByte()
         {
-            if (_settings.UseBuffering)
+            if (_useBuffering)
             {
-                throw new NotImplementedException();
+                if (!EnsureBufferIsReadyForReading())
+                    throw new EndOfStreamException();
+
+                var result = _buffer[_bufferPosition];
+                Position++;
+                return result;
             }
             else
             {
@@ -336,18 +344,84 @@ namespace Melanchall.DryWetMidi.Core
             if (count == 0)
                 return new byte[0];
 
-            if (_settings.UseBuffering)
-            {
-                throw new NotImplementedException();
-            }
+            if (_useBuffering)
+                return ReadBytesWithBuffering(count);
             else
+                return ReadBytesWithoutBuffering(count);
+        }
+
+        private byte[] ReadBytesWithBuffering(int count)
+        {
+            if (!EnsureBufferIsReadyForReading())
+                return new byte[0];
+
+            if (_bufferPosition + count <= _bufferSize)
+                return ReadBytesFromBuffer(count);
+
+            var availableBytesCount = _bufferSize - _bufferPosition;
+            if (availableBytesCount == 0)
+                return new byte[0];
+
+            var firstBytes = ReadBytesFromBuffer(availableBytesCount);
+            var lastBytes = ReadBytesWithBuffering(count - availableBytesCount);
+            
+            var fullBytes = new byte[firstBytes.Length + lastBytes.Length];
+            Buffer.BlockCopy(firstBytes, 0, fullBytes, 0, firstBytes.Length);
+            Buffer.BlockCopy(lastBytes, 0, fullBytes, firstBytes.Length, lastBytes.Length);
+
+            return fullBytes;
+        }
+
+        private byte[] ReadBytesFromBuffer(int count)
+        {
+            var result = new byte[count];
+            Buffer.BlockCopy(_buffer, _bufferPosition, result, 0, count);
+            Position += count;
+            return result;
+        }
+
+        private byte[] ReadBytesWithoutBuffering(int count)
+        {
+            var result = new byte[count];
+            var totalReadBytesCount = 0;
+
+            do
             {
-                var result = new byte[count];
+                var readBytesCount = _stream.Read(result, totalReadBytesCount, count);
+                if (readBytesCount == 0)
+                    break;
+
+                totalReadBytesCount += readBytesCount;
+                count -= readBytesCount;
+            }
+            while (count > 0);
+
+            if (totalReadBytesCount != result.Length)
+            {
+                var copy = new byte[totalReadBytesCount];
+                Buffer.BlockCopy(result, 0, copy, 0, totalReadBytesCount);
+                result = copy;
+            }
+
+            return result;
+        }
+
+        private bool EnsureBufferIsReadyForReading()
+        {
+            if (EndReached)
+                return false;
+
+            if (_position < _bufferStart || _position >= _bufferStart + _bufferSize)
+            {
+                _stream.Position = (_position / _buffer.Length) * _buffer.Length;
+                _bufferStart = _stream.Position;
+
                 var totalReadBytesCount = 0;
+                var count = _buffer.Length;
 
                 do
                 {
-                    var readBytesCount = _stream.Read(result, totalReadBytesCount, count);
+                    var readBytesCount = _stream.Read(_buffer, totalReadBytesCount, count);
                     if (readBytesCount == 0)
                         break;
 
@@ -356,15 +430,26 @@ namespace Melanchall.DryWetMidi.Core
                 }
                 while (count > 0);
 
-                if (totalReadBytesCount != result.Length)
-                {
-                    var copy = new byte[totalReadBytesCount];
-                    Buffer.BlockCopy(result, 0, copy, 0, totalReadBytesCount);
-                    result = copy;
-                }
+                if (totalReadBytesCount == 0)
+                    return false;
 
-                return result;
+                _bufferPosition = (int)(_position % _buffer.Length);
+                _bufferSize = totalReadBytesCount;
+                return true;
             }
+
+            //if (_bufferPosition >= _bufferSize)
+            //{
+            //    if (_bufferSize < _buffer.Length)
+            //        throw new EndOfStreamException();
+
+            //    _stream.Position += _bufferPosition;
+            //    _isBufferDirty = true;
+
+            //    return EnsureBufferIsReadyForReading();
+            //}
+
+            return _bufferSize > 0;
         }
 
         #endregion

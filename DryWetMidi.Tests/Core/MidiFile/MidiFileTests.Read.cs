@@ -606,7 +606,7 @@ namespace Melanchall.DryWetMidi.Tests.Core
                 var nonSeekableStream = new NonSeekableStream(filePath);
 
                 MidiFile nonSeekableFile = null;
-                Assert.Throws<TException>(() => nonSeekableFile = MidiFile.Read(nonSeekableStream, readingSettings), $"Exception not thrown for file '{filePath}'.");
+                Assert.Throws<TException>(() => nonSeekableFile = MidiFile.Read(nonSeekableStream, readingSettings), $"Exception not thrown for file '{filePath}' read from non-seekable stream.");
                 MidiAsserts.AreFilesEqual(midiFile, nonSeekableFile, true, $"Non-seekable MIDI file '{fileBasePath}' is invalid.");
 
                 //
@@ -614,7 +614,7 @@ namespace Melanchall.DryWetMidi.Tests.Core
                 readingSettings.ReaderSettings.ReadFromMemory = true;
 
                 MidiFile inMemoryMidiFile = null;
-                Assert.Throws<TException>(() => inMemoryMidiFile = MidiFile.Read(filePath, readingSettings), $"Exception not thrown for '{filePath}'.");
+                Assert.Throws<TException>(() => inMemoryMidiFile = MidiFile.Read(filePath, readingSettings), $"Exception not thrown for '{filePath}' read with putting data in memory.");
 
                 MidiAsserts.AreFilesEqual(midiFile, inMemoryMidiFile, true, $"In-memory MIDI file '{fileBasePath}' is invalid.");
 
