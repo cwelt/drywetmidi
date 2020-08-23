@@ -40,22 +40,19 @@ namespace Melanchall.DryWetMidi.Benchmarks.Core
                 MidiFileReadBenchmarks.Read(FileFormat, FileSize, settings);
             }
 
-            [Obsolete]
             [Benchmark]
-            public void Read_ReadFromMemory()
+            public void Read_BufferAllData()
             {
                 var settings = new ReadingSettings();
-                settings.ReaderSettings.ReadFromMemory = true;
+                settings.ReaderSettings.BufferingPolicy = BufferingPolicy.BufferAllData;
                 MidiFileReadBenchmarks.Read(FileFormat, FileSize, settings);
             }
 
             [Benchmark]
-            [Arguments(BufferingPolicy.BufferAllData)]
-            [Arguments(BufferingPolicy.UseFixedSizeBuffer)]
-            public void Read_UseBuffering(BufferingPolicy bufferingPolicy)
+            public void Read_UseFixedSizeBuffer()
             {
                 var settings = new ReadingSettings();
-                settings.ReaderSettings.BufferingPolicy = bufferingPolicy;
+                settings.ReaderSettings.BufferingPolicy = BufferingPolicy.UseFixedSizeBuffer;
                 MidiFileReadBenchmarks.Read(FileFormat, FileSize, settings);
             }
         }
