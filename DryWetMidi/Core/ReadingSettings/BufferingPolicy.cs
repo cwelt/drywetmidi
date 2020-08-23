@@ -2,8 +2,9 @@
 {
     public enum BufferingPolicy
     {
-        DontUseBuffer,
+        DontUseBuffering,
         UseFixedSizeBuffer,
+        UseCustomBuffer,
         BufferAllData
     }
 }

@@ -11,17 +11,21 @@ namespace Melanchall.DryWetMidi.Core
     /// </summary>
     public sealed class MidiReader : IDisposable
     {
+        #region Constants
+
+        private static readonly byte[] EmptyByteArray = new byte[0];
+
+        #endregion
+
         #region Fields
 
         private readonly ReaderSettings _settings;
 
-        private readonly bool _isStreamWrapped;
-        private readonly MemoryStream _allDataBuffer;
-
         private readonly Stream _stream;
+        private readonly bool _isStreamWrapped;
 
-        private readonly bool _useFixedSizeBuffer;
-        private readonly byte[] _buffer;
+        private readonly bool _useBuffering;
+        private byte[] _buffer;
         private int _bufferSize;
         private int _bufferPosition;
         private long _bufferStart = -1;
@@ -63,20 +67,12 @@ namespace Melanchall.DryWetMidi.Core
                 _isStreamWrapped = true;
             }
 
-            if (settings.BufferingPolicy == BufferingPolicy.BufferAllData && !(stream is MemoryStream))
-            {
-                _allDataBuffer = new MemoryStream();
-                stream.CopyTo(_allDataBuffer);
-                _allDataBuffer.Position = 0;
-                stream = _allDataBuffer;
-            }
-
             _stream = stream;
             Length = _stream.Length;
 
-            _useFixedSizeBuffer = _settings.BufferingPolicy == BufferingPolicy.UseFixedSizeBuffer && !_isStreamWrapped && !(_stream is MemoryStream);
-            if (_useFixedSizeBuffer)
-                _buffer = new byte[_settings.BufferSize];
+            _useBuffering = _settings.BufferingPolicy != BufferingPolicy.DontUseBuffering && !_isStreamWrapped && !(_stream is MemoryStream);
+            if (_useBuffering)
+                PrepareBuffer();
         }
 
         #endregion
@@ -90,10 +86,10 @@ namespace Melanchall.DryWetMidi.Core
         /// <exception cref="ObjectDisposedException">Property was called after the reader was disposed.</exception>
         public long Position
         {
-            get { return _useFixedSizeBuffer ? _position : _stream.Position; }
+            get { return _useBuffering ? _position : _stream.Position; }
             set
             {
-                if (_useFixedSizeBuffer)
+                if (_useBuffering)
                     _bufferPosition += (int)(value - _position);
                 else
                     _stream.Position = value;
@@ -127,7 +123,7 @@ namespace Melanchall.DryWetMidi.Core
         /// <exception cref="IOException">An I/O error occurred on the underlying stream.</exception>
         public byte ReadByte()
         {
-            if (_useFixedSizeBuffer)
+            if (_useBuffering)
             {
                 if (!EnsureBufferIsReadyForReading())
                     throw new EndOfStreamException();
@@ -340,9 +336,9 @@ namespace Melanchall.DryWetMidi.Core
         private byte[] ReadBytesInternal(int count)
         {
             if (count == 0)
-                return new byte[0];
+                return EmptyByteArray;
 
-            if (_useFixedSizeBuffer)
+            if (_useBuffering)
                 return ReadBytesWithBuffering(count);
             else
                 return ReadBytesWithoutBuffering(count);
@@ -351,14 +347,14 @@ namespace Melanchall.DryWetMidi.Core
         private byte[] ReadBytesWithBuffering(int count)
         {
             if (!EnsureBufferIsReadyForReading())
-                return new byte[0];
+                return EmptyByteArray;
 
             if (_bufferPosition + count <= _bufferSize)
                 return ReadBytesFromBuffer(count);
 
             var availableBytesCount = _bufferSize - _bufferPosition;
             if (availableBytesCount == 0)
-                return new byte[0];
+                return EmptyByteArray;
 
             var firstBytes = ReadBytesFromBuffer(availableBytesCount);
             var lastBytes = ReadBytesWithBuffering(count - availableBytesCount);
@@ -439,6 +435,43 @@ namespace Melanchall.DryWetMidi.Core
             return _bufferSize > 0;
         }
 
+        private void PrepareBuffer()
+        {
+            if (!_useBuffering)
+                return;
+
+            switch (_settings.BufferingPolicy)
+            {
+                case BufferingPolicy.BufferAllData:
+                    {
+                        using (var dataStream = new MemoryStream())
+                        {
+                            _stream.CopyTo(dataStream);
+                            _buffer = dataStream.ToArray();
+                        }
+
+                        _bufferStart = 0;
+                        _bufferSize = _buffer.Length;
+                    }
+                    break;
+
+                case BufferingPolicy.UseFixedSizeBuffer:
+                    {
+                        _buffer = new byte[_settings.BufferSize];
+                    }
+                    break;
+
+                case BufferingPolicy.UseCustomBuffer:
+                    {
+                        if (_settings.Buffer == null)
+                            throw new InvalidOperationException($"Buffer is null for {_settings.BufferingPolicy} buffering policy.");
+                        
+                        _buffer = _settings.Buffer;
+                    }
+                    break;
+            }
+        }
+
         #endregion
 
         #region IDisposable
@@ -458,7 +491,6 @@ namespace Melanchall.DryWetMidi.Core
 
             if (disposing)
             {
-                _allDataBuffer?.Dispose();
             }
 
             _disposed = true;

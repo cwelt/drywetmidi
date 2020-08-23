@@ -120,6 +120,8 @@ namespace Melanchall.DryWetMidi.Core
             }
         }
 
+        public byte[] Buffer { get; set; }
+
         #endregion
     }
 }
