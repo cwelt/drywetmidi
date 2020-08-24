@@ -8,7 +8,7 @@
         #region Properties
 
         /// <summary>
-        /// Gets length of an object.
+        /// Gets or sets the length of an object.
         /// </summary>
         long Length { get; set; }
 
