@@ -10,7 +10,7 @@
         /// <summary>
         /// Gets start time of an object.
         /// </summary>
-        long Time { get; }
+        long Time { get; set; }
 
         #endregion
     }

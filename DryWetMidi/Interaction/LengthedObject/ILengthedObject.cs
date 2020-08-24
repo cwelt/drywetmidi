@@ -10,7 +10,7 @@
         /// <summary>
         /// Gets length of an object.
         /// </summary>
-        long Length { get; }
+        long Length { get; set; }
 
         #endregion
     }
