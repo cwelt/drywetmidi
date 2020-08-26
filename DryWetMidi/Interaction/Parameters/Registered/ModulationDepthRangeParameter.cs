@@ -7,7 +7,7 @@ namespace Melanchall.DryWetMidi.Interaction
     {
         #region Constants
 
-        public static readonly SevenBitNumber DefaultHalfSteps = (SevenBitNumber)2;
+        public static readonly SevenBitNumber DefaultHalfSteps = (SevenBitNumber)0;
         public static readonly float DefaultCents = 50f;
 
         public const float MinCents = 0f;
