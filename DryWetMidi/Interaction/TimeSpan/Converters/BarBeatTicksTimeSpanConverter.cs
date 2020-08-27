@@ -22,7 +22,7 @@ namespace Melanchall.DryWetMidi.Interaction
 
             //
 
-            var timeSignatureLine = tempoMap.TimeSignature;
+            var timeSignatureLine = tempoMap.TimeSignatureLine;
             var timeSignatureChanges = timeSignatureLine
                 .Where(v => v.Time > time && v.Time < endTime)
                 .ToList();
@@ -107,7 +107,7 @@ namespace Melanchall.DryWetMidi.Interaction
                 return 0;
 
             var ticksPerQuarterNote = ticksPerQuarterNoteTimeDivision.TicksPerQuarterNote;
-            var timeSignatureLine = tempoMap.TimeSignature;
+            var timeSignatureLine = tempoMap.TimeSignatureLine;
 
             //
 

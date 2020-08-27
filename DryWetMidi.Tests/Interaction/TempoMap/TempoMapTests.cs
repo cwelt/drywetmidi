@@ -103,17 +103,17 @@ namespace Melanchall.DryWetMidi.Tests.Interaction
                             "Unexpected time division.");
 
             Assert.AreEqual(expectedTempo,
-                            tempoMap.Tempo.AtTime(0),
+                            tempoMap.GetTempoAtTime(new MidiTimeSpan(0)),
                             "Unexpected tempo at the start of tempo map.");
             Assert.AreEqual(expectedTempo,
-                            tempoMap.Tempo.AtTime(1000),
+                            tempoMap.GetTempoAtTime(new MidiTimeSpan(1000)),
                             "Unexpected tempo at the arbitrary time of tempo map.");
 
             Assert.AreEqual(expectedTimeSignature,
-                            tempoMap.TimeSignature.AtTime(0),
+                            tempoMap.GetTimeSignatureAtTime(new MidiTimeSpan(0)),
                             "Unexpected time signature at the start of tempo map.");
             Assert.AreEqual(expectedTimeSignature,
-                            tempoMap.TimeSignature.AtTime(1000),
+                            tempoMap.GetTimeSignatureAtTime(new MidiTimeSpan(1000)),
                             "Unexpected time signature at the arbitrary time of tempo map.");
         }
 

@@ -22,8 +22,8 @@ namespace Melanchall.DryWetMidi.Interaction
 
         #region Fields
 
-        private ValueLine<TimeSignature> _timeSignature;
-        private ValueLine<Tempo> _tempo;
+        private ValueLine<TimeSignature> _timeSignatureLine;
+        private ValueLine<Tempo> _tempoLine;
 
         private readonly List<ITempoMapValuesCache> _valuesCaches = new List<ITempoMapValuesCache>();
 
@@ -45,8 +45,8 @@ namespace Melanchall.DryWetMidi.Interaction
             ThrowIfArgument.IsNull(nameof(timeDivision), timeDivision);
 
             TimeDivision = timeDivision;
-            Tempo = new ValueLine<Tempo>(Interaction.Tempo.Default);
-            TimeSignature = new ValueLine<TimeSignature>(Interaction.TimeSignature.Default);
+            TempoLine = new ValueLine<Tempo>(Interaction.Tempo.Default);
+            TimeSignatureLine = new ValueLine<TimeSignature>(Interaction.TimeSignature.Default);
         }
 
         #endregion
@@ -61,32 +61,44 @@ namespace Melanchall.DryWetMidi.Interaction
         /// <summary>
         /// Gets an object that holds changes of the time signature through the time.
         /// </summary>
+        [Obsolete("Please use GetTimeSignatureChanges and GetTimeSignatureAtTime methods.")]
         public ValueLine<TimeSignature> TimeSignature
         {
-            get { return _timeSignature; }
-            private set
-            {
-                if (_timeSignature != null)
-                    _timeSignature.ValuesChanged -= OnTimeSignatureChanged;
-
-                _timeSignature = value;
-                _timeSignature.ValuesChanged += OnTimeSignatureChanged;
-            }
+            get { return _timeSignatureLine; }
         }
 
         /// <summary>
         /// Gets an object that holds changes of the tempo through the time.
         /// </summary>
+        [Obsolete("Please use GetTempoChanges and GetTempoAtTime methods.")]
         public ValueLine<Tempo> Tempo
         {
-            get { return _tempo; }
-            private set
-            {
-                if (_tempo != null)
-                    _tempo.ValuesChanged -= OnTempoChanged;
+            get { return _tempoLine; }
+        }
 
-                _tempo = value;
-                _tempo.ValuesChanged += OnTempoChanged;
+        internal ValueLine<TimeSignature> TimeSignatureLine
+        {
+            get { return _timeSignatureLine; }
+            set
+            {
+                if (_timeSignatureLine != null)
+                    _timeSignatureLine.ValuesChanged -= OnTimeSignatureChanged;
+
+                _timeSignatureLine = value;
+                _timeSignatureLine.ValuesChanged += OnTimeSignatureChanged;
+            }
+        }
+
+        internal ValueLine<Tempo> TempoLine
+        {
+            get { return _tempoLine; }
+            set
+            {
+                if (_tempoLine != null)
+                    _tempoLine.ValuesChanged -= OnTempoChanged;
+
+                _tempoLine = value;
+                _tempoLine.ValuesChanged += OnTempoChanged;
             }
         }
 
@@ -111,6 +123,32 @@ namespace Melanchall.DryWetMidi.Interaction
 
         #region Methods
 
+        public IEnumerable<ValueChange<Tempo>> GetTempoChanges()
+        {
+            return _tempoLine;
+        }
+
+        public Tempo GetTempoAtTime(ITimeSpan time)
+        {
+            ThrowIfArgument.IsNull(nameof(time), time);
+
+            var convertedTime = TimeConverter.ConvertFrom(time, this);
+            return TempoLine.AtTime(convertedTime);
+        }
+
+        public IEnumerable<ValueChange<TimeSignature>> GetTimeSignatureChanges()
+        {
+            return _timeSignatureLine;
+        }
+
+        public TimeSignature GetTimeSignatureAtTime(ITimeSpan time)
+        {
+            ThrowIfArgument.IsNull(nameof(time), time);
+
+            var convertedTime = TimeConverter.ConvertFrom(time, this);
+            return TimeSignatureLine.AtTime(convertedTime);
+        }
+
         /// <summary>
         /// Clones the current <see cref="TempoMap"/>.
         /// </summary>
@@ -119,8 +157,8 @@ namespace Melanchall.DryWetMidi.Interaction
         {
             var tempoMap = new TempoMap(TimeDivision.Clone());
 
-            tempoMap.Tempo.ReplaceValues(Tempo);
-            tempoMap.TimeSignature.ReplaceValues(TimeSignature);
+            tempoMap.TempoLine.ReplaceValues(TempoLine);
+            tempoMap.TimeSignatureLine.ReplaceValues(TimeSignatureLine);
 
             return tempoMap;
         }
@@ -296,17 +334,12 @@ namespace Melanchall.DryWetMidi.Interaction
             return tempoMap;
         }
 
-        /// <summary>
-        /// Flips the tempo map relative to the specified time.
-        /// </summary>
-        /// <param name="centerTime">The time the tempo map should be flipped relative to.</param>
-        /// <returns>The tempo mup flipped relative to the <paramref name="centerTime"/>.</returns>
         internal TempoMap Flip(long centerTime)
         {
             return new TempoMap(TimeDivision)
             {
-                Tempo = Tempo.Reverse(centerTime),
-                TimeSignature = TimeSignature.Reverse(centerTime)
+                TempoLine = TempoLine.Reverse(centerTime),
+                TimeSignatureLine = TimeSignatureLine.Reverse(centerTime)
             };
         }
 
@@ -324,12 +357,12 @@ namespace Melanchall.DryWetMidi.Interaction
 
         private static void SetGlobalTempo(TempoMap tempoMap, Tempo tempo)
         {
-            tempoMap.Tempo.SetValue(0, tempo);
+            tempoMap.TempoLine.SetValue(0, tempo);
         }
 
         private static void SetGlobalTimeSignature(TempoMap tempoMap, TimeSignature timeSignature)
         {
-            tempoMap.TimeSignature.SetValue(0, timeSignature);
+            tempoMap.TimeSignatureLine.SetValue(0, timeSignature);
         }
 
         private void InvalidateCaches(TempoMapLine tempoMapLine)
