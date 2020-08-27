@@ -111,6 +111,7 @@ namespace Melanchall.DryWetMidi.Interaction
                     return;
 
                 _isTempoMapReady = value;
+                
                 if (_isTempoMapReady)
                 {
                     InvalidateCaches(TempoMapLine.Tempo);
@@ -133,7 +134,7 @@ namespace Melanchall.DryWetMidi.Interaction
             ThrowIfArgument.IsNull(nameof(time), time);
 
             var convertedTime = TimeConverter.ConvertFrom(time, this);
-            return TempoLine.AtTime(convertedTime);
+            return TempoLine.GetValueAtTime(convertedTime);
         }
 
         public IEnumerable<ValueChange<TimeSignature>> GetTimeSignatureChanges()
@@ -146,7 +147,7 @@ namespace Melanchall.DryWetMidi.Interaction
             ThrowIfArgument.IsNull(nameof(time), time);
 
             var convertedTime = TimeConverter.ConvertFrom(time, this);
-            return TimeSignatureLine.AtTime(convertedTime);
+            return TimeSignatureLine.GetValueAtTime(convertedTime);
         }
 
         /// <summary>
