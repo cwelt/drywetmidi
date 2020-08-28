@@ -232,6 +232,500 @@ namespace Melanchall.DryWetMidi.Tests.Interaction
             }
         }
 
+        [Test]
+        public void GetTempoAtTime_DefaultTempoMap_AtStart()
+        {
+            var tempoMap = TempoMap.Default;
+            var tempo = tempoMap.GetTempoAtTime(new MidiTimeSpan(0));
+            Assert.AreEqual(Tempo.Default, tempo, "Tempo is invalid.");
+        }
+
+        [Test]
+        public void GetTempoAtTime_DefaultTempoMap_AtMiddle()
+        {
+            var tempoMap = TempoMap.Default;
+            var tempo = tempoMap.GetTempoAtTime(MusicalTimeSpan.Quarter);
+            Assert.AreEqual(Tempo.Default, tempo, "Tempo is invalid.");
+        }
+
+        [Test]
+        public void GetTempoAtTime_NonDefaultTempoMap_SingleChangeAtStart_GetAtStart()
+        {
+            var microsecondsPerQuarterNote = 100000;
+
+            var tempoMap = TempoMap.Create(new Tempo(microsecondsPerQuarterNote));
+            var tempo = tempoMap.GetTempoAtTime(new MidiTimeSpan(0));
+            Assert.AreEqual(new Tempo(microsecondsPerQuarterNote), tempo, "Tempo is invalid.");
+        }
+
+        [Test]
+        public void GetTempoAtTime_NonDefaultTempoMap_SingleChangeAtStart_GetAtMiddle()
+        {
+            var microsecondsPerQuarterNote = 100000;
+
+            var tempoMap = TempoMap.Create(new Tempo(microsecondsPerQuarterNote));
+            var tempo = tempoMap.GetTempoAtTime(new MetricTimeSpan(0, 0, 1));
+            Assert.AreEqual(new Tempo(microsecondsPerQuarterNote), tempo, "Tempo is invalid.");
+        }
+
+        [Test]
+        public void GetTempoAtTime_NonDefaultTempoMap_SingleChangeAtMiddle_GetAtStart()
+        {
+            var microsecondsPerQuarterNote = 100000;
+
+            using (var tempoMapManager = new TempoMapManager())
+            {
+                tempoMapManager.SetTempo(1000, new Tempo(microsecondsPerQuarterNote));
+
+                var tempoMap = tempoMapManager.TempoMap;
+                var tempo = tempoMap.GetTempoAtTime(new MidiTimeSpan(0));
+                Assert.AreEqual(Tempo.Default, tempo, "Tempo is invalid.");
+            }
+        }
+
+        [Test]
+        public void GetTempoAtTime_NonDefaultTempoMap_SingleChangeAtMiddle_GetBeforeChange()
+        {
+            var microsecondsPerQuarterNote = 100000;
+
+            using (var tempoMapManager = new TempoMapManager())
+            {
+                tempoMapManager.SetTempo(1000, new Tempo(microsecondsPerQuarterNote));
+
+                var tempoMap = tempoMapManager.TempoMap;
+                var tempo = tempoMap.GetTempoAtTime(new MidiTimeSpan(100));
+                Assert.AreEqual(Tempo.Default, tempo, "Tempo is invalid.");
+            }
+        }
+
+        [Test]
+        public void GetTempoAtTime_NonDefaultTempoMap_SingleChangeAtMiddle_GetAtChange()
+        {
+            var microsecondsPerQuarterNote = 100000;
+
+            using (var tempoMapManager = new TempoMapManager())
+            {
+                tempoMapManager.SetTempo(1000, new Tempo(microsecondsPerQuarterNote));
+
+                var tempoMap = tempoMapManager.TempoMap;
+                var tempo = tempoMap.GetTempoAtTime(new MidiTimeSpan(1000));
+                Assert.AreEqual(new Tempo(microsecondsPerQuarterNote), tempo, "Tempo is invalid.");
+            }
+        }
+
+        [Test]
+        public void GetTempoAtTime_NonDefaultTempoMap_SingleChangeAtMiddle_GetAfterChange()
+        {
+            var microsecondsPerQuarterNote = 100000;
+
+            using (var tempoMapManager = new TempoMapManager())
+            {
+                tempoMapManager.SetTempo(1000, new Tempo(microsecondsPerQuarterNote));
+
+                var tempoMap = tempoMapManager.TempoMap;
+                var tempo = tempoMap.GetTempoAtTime(new MidiTimeSpan(1500));
+                Assert.AreEqual(new Tempo(microsecondsPerQuarterNote), tempo, "Tempo is invalid.");
+            }
+        }
+
+        [Test]
+        public void GetTempoAtTime_NonDefaultTempoMap_MultipleChangesAtStart_GetAtStart()
+        {
+            var microsecondsPerQuarterNote1 = 100000;
+            var microsecondsPerQuarterNote2 = 700000;
+
+            using (var tempoMapManager = new TempoMapManager())
+            {
+                tempoMapManager.SetTempo(0, new Tempo(microsecondsPerQuarterNote1));
+                tempoMapManager.SetTempo(0, new Tempo(microsecondsPerQuarterNote2));
+
+                var tempoMap = tempoMapManager.TempoMap;
+                var tempo = tempoMap.GetTempoAtTime(new MidiTimeSpan(0));
+                Assert.AreEqual(new Tempo(microsecondsPerQuarterNote2), tempo, "Tempo is invalid.");
+            }
+        }
+
+        [Test]
+        public void GetTempoAtTime_NonDefaultTempoMap_MultipleChangesAtStart_GetAtMiddle()
+        {
+            var microsecondsPerQuarterNote1 = 100000;
+            var microsecondsPerQuarterNote2 = 700000;
+
+            using (var tempoMapManager = new TempoMapManager())
+            {
+                tempoMapManager.SetTempo(0, new Tempo(microsecondsPerQuarterNote1));
+                tempoMapManager.SetTempo(0, new Tempo(microsecondsPerQuarterNote2));
+
+                var tempoMap = tempoMapManager.TempoMap;
+                var tempo = tempoMap.GetTempoAtTime(new MidiTimeSpan(100));
+                Assert.AreEqual(new Tempo(microsecondsPerQuarterNote2), tempo, "Tempo is invalid.");
+            }
+        }
+
+        [Test]
+        public void GetTempoAtTime_NonDefaultTempoMap_MultipleChangesAtMiddle_GetAtStart()
+        {
+            var microsecondsPerQuarterNote1 = 100000;
+            var microsecondsPerQuarterNote2 = 700000;
+
+            using (var tempoMapManager = new TempoMapManager())
+            {
+                tempoMapManager.SetTempo(100, new Tempo(microsecondsPerQuarterNote1));
+                tempoMapManager.SetTempo(1000, new Tempo(microsecondsPerQuarterNote2));
+
+                var tempoMap = tempoMapManager.TempoMap;
+                var tempo = tempoMap.GetTempoAtTime(new MetricTimeSpan());
+                Assert.AreEqual(Tempo.Default, tempo, "Tempo is invalid.");
+            }
+        }
+
+        [Test]
+        public void GetTempoAtTime_NonDefaultTempoMap_MultipleChangesAtMiddle_GetBeforeFirstChange()
+        {
+            var microsecondsPerQuarterNote1 = 100000;
+            var microsecondsPerQuarterNote2 = 700000;
+
+            using (var tempoMapManager = new TempoMapManager())
+            {
+                tempoMapManager.SetTempo(100, new Tempo(microsecondsPerQuarterNote1));
+                tempoMapManager.SetTempo(1000, new Tempo(microsecondsPerQuarterNote2));
+
+                var tempoMap = tempoMapManager.TempoMap;
+                var tempo = tempoMap.GetTempoAtTime(new MidiTimeSpan(99));
+                Assert.AreEqual(Tempo.Default, tempo, "Tempo is invalid.");
+            }
+        }
+
+        [Test]
+        public void GetTempoAtTime_NonDefaultTempoMap_MultipleChangesAtMiddle_GetAtFirstChange()
+        {
+            var microsecondsPerQuarterNote1 = 100000;
+            var microsecondsPerQuarterNote2 = 700000;
+
+            using (var tempoMapManager = new TempoMapManager())
+            {
+                tempoMapManager.SetTempo(100, new Tempo(microsecondsPerQuarterNote1));
+                tempoMapManager.SetTempo(1000, new Tempo(microsecondsPerQuarterNote2));
+
+                var tempoMap = tempoMapManager.TempoMap;
+                var tempo = tempoMap.GetTempoAtTime(new MidiTimeSpan(100));
+                Assert.AreEqual(new Tempo(microsecondsPerQuarterNote1), tempo, "Tempo is invalid.");
+            }
+        }
+
+        [Test]
+        public void GetTempoAtTime_NonDefaultTempoMap_MultipleChangesAtMiddle_GetBetweenChanges()
+        {
+            var microsecondsPerQuarterNote1 = 100000;
+            var microsecondsPerQuarterNote2 = 700000;
+
+            using (var tempoMapManager = new TempoMapManager())
+            {
+                tempoMapManager.SetTempo(100, new Tempo(microsecondsPerQuarterNote1));
+                tempoMapManager.SetTempo(1000, new Tempo(microsecondsPerQuarterNote2));
+
+                var tempoMap = tempoMapManager.TempoMap;
+                var tempo = tempoMap.GetTempoAtTime(new MidiTimeSpan(500));
+                Assert.AreEqual(new Tempo(microsecondsPerQuarterNote1), tempo, "Tempo is invalid.");
+            }
+        }
+
+        [Test]
+        public void GetTempoAtTime_NonDefaultTempoMap_MultipleChangesAtMiddle_GetAtSecondChange()
+        {
+            var microsecondsPerQuarterNote1 = 100000;
+            var microsecondsPerQuarterNote2 = 700000;
+
+            using (var tempoMapManager = new TempoMapManager())
+            {
+                tempoMapManager.SetTempo(100, new Tempo(microsecondsPerQuarterNote1));
+                tempoMapManager.SetTempo(1000, new Tempo(microsecondsPerQuarterNote2));
+
+                var tempoMap = tempoMapManager.TempoMap;
+                var tempo = tempoMap.GetTempoAtTime(new MidiTimeSpan(1000));
+                Assert.AreEqual(new Tempo(microsecondsPerQuarterNote2), tempo, "Tempo is invalid.");
+            }
+        }
+
+        [Test]
+        public void GetTempoAtTime_NonDefaultTempoMap_MultipleChangesAtMiddle_GetAfterSecondChange()
+        {
+            var microsecondsPerQuarterNote1 = 100000;
+            var microsecondsPerQuarterNote2 = 700000;
+
+            using (var tempoMapManager = new TempoMapManager())
+            {
+                tempoMapManager.SetTempo(100, new Tempo(microsecondsPerQuarterNote1));
+                tempoMapManager.SetTempo(1000, new Tempo(microsecondsPerQuarterNote2));
+
+                var tempoMap = tempoMapManager.TempoMap;
+                var tempo = tempoMap.GetTempoAtTime(new MidiTimeSpan(5000));
+                Assert.AreEqual(new Tempo(microsecondsPerQuarterNote2), tempo, "Tempo is invalid.");
+            }
+        }
+
+        [Test]
+        public void GetTimeSignatureAtTime_DefaultTempoMap_AtStart()
+        {
+            var tempoMap = TempoMap.Default;
+            var timeSignature = tempoMap.GetTimeSignatureAtTime(new MidiTimeSpan(0));
+            Assert.AreEqual(TimeSignature.Default, timeSignature, "Time signature is invalid.");
+        }
+
+        [Test]
+        public void GetTimeSignatureAtTime_DefaultTempoMap_AtMiddle()
+        {
+            var tempoMap = TempoMap.Default;
+            var timeSignature = tempoMap.GetTimeSignatureAtTime(MusicalTimeSpan.Quarter);
+            Assert.AreEqual(TimeSignature.Default, timeSignature, "Time signature is invalid.");
+        }
+
+        [Test]
+        public void GetTimeSignatureAtTime_NonDefaultTempoMap_SingleChangeAtStart_GetAtStart()
+        {
+            var numerator = 1;
+            var denominator = 16;
+
+            var tempoMap = TempoMap.Create(new TimeSignature(numerator, denominator));
+            var timeSignature = tempoMap.GetTimeSignatureAtTime(new MidiTimeSpan(0));
+            Assert.AreEqual(new TimeSignature(numerator, denominator), timeSignature, "Time signature is invalid.");
+        }
+
+        [Test]
+        public void GetTimeSignatureAtTime_NonDefaultTempoMap_SingleChangeAtStart_GetAtMiddle()
+        {
+            var numerator = 1;
+            var denominator = 16;
+
+            var tempoMap = TempoMap.Create(new TimeSignature(numerator, denominator));
+            var timeSignature = tempoMap.GetTimeSignatureAtTime(new MetricTimeSpan(0, 0, 1));
+            Assert.AreEqual(new TimeSignature(numerator, denominator), timeSignature, "Time signature is invalid.");
+        }
+
+        [Test]
+        public void GetTimeSignatureAtTime_NonDefaultTempoMap_SingleChangeAtMiddle_GetAtStart()
+        {
+            var numerator = 1;
+            var denominator = 16;
+
+            using (var tempoMapManager = new TempoMapManager())
+            {
+                tempoMapManager.SetTimeSignature(1000, new TimeSignature(numerator, denominator));
+
+                var tempoMap = tempoMapManager.TempoMap;
+                var timeSignature = tempoMap.GetTimeSignatureAtTime(new MidiTimeSpan(0));
+                Assert.AreEqual(TimeSignature.Default, timeSignature, "Time signature is invalid.");
+            }
+        }
+
+        [Test]
+        public void GetTimeSignatureAtTime_NonDefaultTempoMap_SingleChangeAtMiddle_GetBeforeChange()
+        {
+            var numerator = 1;
+            var denominator = 16;
+
+            using (var tempoMapManager = new TempoMapManager())
+            {
+                tempoMapManager.SetTimeSignature(1000, new TimeSignature(numerator, denominator));
+
+                var tempoMap = tempoMapManager.TempoMap;
+                var timeSignature = tempoMap.GetTimeSignatureAtTime(new MidiTimeSpan(100));
+                Assert.AreEqual(TimeSignature.Default, timeSignature, "Time signature is invalid.");
+            }
+        }
+
+        [Test]
+        public void GetTimeSignatureAtTime_NonDefaultTempoMap_SingleChangeAtMiddle_GetAtChange()
+        {
+            var numerator = 1;
+            var denominator = 16;
+
+            using (var tempoMapManager = new TempoMapManager())
+            {
+                tempoMapManager.SetTimeSignature(1000, new TimeSignature(numerator, denominator));
+
+                var tempoMap = tempoMapManager.TempoMap;
+                var timeSignature = tempoMap.GetTimeSignatureAtTime(new MidiTimeSpan(1000));
+                Assert.AreEqual(new TimeSignature(numerator, denominator), timeSignature, "Time signature is invalid.");
+            }
+        }
+
+        [Test]
+        public void GetTimeSignatureAtTime_NonDefaultTempoMap_SingleChangeAtMiddle_GetAfterChange()
+        {
+            var numerator = 1;
+            var denominator = 16;
+
+            using (var tempoMapManager = new TempoMapManager())
+            {
+                tempoMapManager.SetTimeSignature(1000, new TimeSignature(numerator, denominator));
+
+                var tempoMap = tempoMapManager.TempoMap;
+                var timeSignature = tempoMap.GetTimeSignatureAtTime(new MidiTimeSpan(1500));
+                Assert.AreEqual(new TimeSignature(numerator, denominator), timeSignature, "Time signature is invalid.");
+            }
+        }
+
+        [Test]
+        public void GetTimeSignatureAtTime_NonDefaultTempoMap_MultipleChangesAtStart_GetAtStart()
+        {
+            var numerator1 = 1;
+            var denominator1 = 16;
+
+            var numerator2 = 3;
+            var denominator2 = 8;
+
+            using (var tempoMapManager = new TempoMapManager())
+            {
+                tempoMapManager.SetTimeSignature(0, new TimeSignature(numerator1, denominator1));
+                tempoMapManager.SetTimeSignature(0, new TimeSignature(numerator2, denominator2));
+
+                var tempoMap = tempoMapManager.TempoMap;
+                var timeSignature = tempoMap.GetTimeSignatureAtTime(new MidiTimeSpan(0));
+                Assert.AreEqual(new TimeSignature(numerator2, denominator2), timeSignature, "Time signature is invalid.");
+            }
+        }
+
+        [Test]
+        public void GetTimeSignatureAtTime_NonDefaultTempoMap_MultipleChangesAtStart_GetAtMiddle()
+        {
+            var numerator1 = 1;
+            var denominator1 = 16;
+
+            var numerator2 = 3;
+            var denominator2 = 8;
+
+            using (var tempoMapManager = new TempoMapManager())
+            {
+                tempoMapManager.SetTimeSignature(0, new TimeSignature(numerator1, denominator1));
+                tempoMapManager.SetTimeSignature(0, new TimeSignature(numerator2, denominator2));
+
+                var tempoMap = tempoMapManager.TempoMap;
+                var timeSignature = tempoMap.GetTimeSignatureAtTime(new MidiTimeSpan(100));
+                Assert.AreEqual(new TimeSignature(numerator2, denominator2), timeSignature, "Time signature is invalid.");
+            }
+        }
+
+        [Test]
+        public void GetTimeSignatureAtTime_NonDefaultTempoMap_MultipleChangesAtMiddle_GetAtStart()
+        {
+            var numerator1 = 1;
+            var denominator1 = 16;
+
+            var numerator2 = 3;
+            var denominator2 = 8;
+
+            using (var tempoMapManager = new TempoMapManager())
+            {
+                tempoMapManager.SetTimeSignature(100, new TimeSignature(numerator1, denominator1));
+                tempoMapManager.SetTimeSignature(1000, new TimeSignature(numerator2, denominator2));
+
+                var tempoMap = tempoMapManager.TempoMap;
+                var timeSignature = tempoMap.GetTimeSignatureAtTime(new MetricTimeSpan());
+                Assert.AreEqual(TimeSignature.Default, timeSignature, "Time signature is invalid.");
+            }
+        }
+
+        [Test]
+        public void GetTimeSignatureAtTime_NonDefaultTempoMap_MultipleChangesAtMiddle_GetBeforeFirstChange()
+        {
+            var numerator1 = 1;
+            var denominator1 = 16;
+
+            var numerator2 = 3;
+            var denominator2 = 8;
+
+            using (var tempoMapManager = new TempoMapManager())
+            {
+                tempoMapManager.SetTimeSignature(100, new TimeSignature(numerator1, denominator1));
+                tempoMapManager.SetTimeSignature(1000, new TimeSignature(numerator2, denominator2));
+
+                var tempoMap = tempoMapManager.TempoMap;
+                var timeSignature = tempoMap.GetTimeSignatureAtTime(new MidiTimeSpan(99));
+                Assert.AreEqual(TimeSignature.Default, timeSignature, "Time signature is invalid.");
+            }
+        }
+
+        [Test]
+        public void GetTimeSignatureAtTime_NonDefaultTempoMap_MultipleChangesAtMiddle_GetAtFirstChange()
+        {
+            var numerator1 = 1;
+            var denominator1 = 16;
+
+            var numerator2 = 3;
+            var denominator2 = 8;
+
+            using (var tempoMapManager = new TempoMapManager())
+            {
+                tempoMapManager.SetTimeSignature(100, new TimeSignature(numerator1, denominator1));
+                tempoMapManager.SetTimeSignature(1000, new TimeSignature(numerator2, denominator2));
+
+                var tempoMap = tempoMapManager.TempoMap;
+                var timeSignature = tempoMap.GetTimeSignatureAtTime(new MidiTimeSpan(100));
+                Assert.AreEqual(new TimeSignature(numerator1, denominator1), timeSignature, "Time signature is invalid.");
+            }
+        }
+
+        [Test]
+        public void GetTimeSignatureAtTime_NonDefaultTempoMap_MultipleChangesAtMiddle_GetBetweenChanges()
+        {
+            var numerator1 = 1;
+            var denominator1 = 16;
+
+            var numerator2 = 3;
+            var denominator2 = 8;
+
+            using (var tempoMapManager = new TempoMapManager())
+            {
+                tempoMapManager.SetTimeSignature(100, new TimeSignature(numerator1, denominator1));
+                tempoMapManager.SetTimeSignature(1000, new TimeSignature(numerator2, denominator2));
+
+                var tempoMap = tempoMapManager.TempoMap;
+                var timeSignature = tempoMap.GetTimeSignatureAtTime(new MidiTimeSpan(500));
+                Assert.AreEqual(new TimeSignature(numerator1, denominator1), timeSignature, "Time signature is invalid.");
+            }
+        }
+
+        [Test]
+        public void GetTimeSignatureAtTime_NonDefaultTempoMap_MultipleChangesAtMiddle_GetAtSecondChange()
+        {
+            var numerator1 = 1;
+            var denominator1 = 16;
+
+            var numerator2 = 3;
+            var denominator2 = 8;
+
+            using (var tempoMapManager = new TempoMapManager())
+            {
+                tempoMapManager.SetTimeSignature(100, new TimeSignature(numerator1, denominator1));
+                tempoMapManager.SetTimeSignature(1000, new TimeSignature(numerator2, denominator2));
+
+                var tempoMap = tempoMapManager.TempoMap;
+                var timeSignature = tempoMap.GetTimeSignatureAtTime(new MidiTimeSpan(1000));
+                Assert.AreEqual(new TimeSignature(numerator2, denominator2), timeSignature, "Time signature is invalid.");
+            }
+        }
+
+        [Test]
+        public void GetTimeSignatureAtTime_NonDefaultTempoMap_MultipleChangesAtMiddle_GetAfterSecondChange()
+        {
+            var numerator1 = 1;
+            var denominator1 = 16;
+
+            var numerator2 = 3;
+            var denominator2 = 8;
+
+            using (var tempoMapManager = new TempoMapManager())
+            {
+                tempoMapManager.SetTimeSignature(100, new TimeSignature(numerator1, denominator1));
+                tempoMapManager.SetTimeSignature(1000, new TimeSignature(numerator2, denominator2));
+
+                var tempoMap = tempoMapManager.TempoMap;
+                var timeSignature = tempoMap.GetTimeSignatureAtTime(new MidiTimeSpan(5000));
+                Assert.AreEqual(new TimeSignature(numerator2, denominator2), timeSignature, "Time signature is invalid.");
+            }
+        }
+
         #endregion
 
         #region Private methods
