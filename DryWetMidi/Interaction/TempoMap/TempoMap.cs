@@ -61,7 +61,7 @@ namespace Melanchall.DryWetMidi.Interaction
         /// <summary>
         /// Gets an object that holds changes of the time signature through the time.
         /// </summary>
-        [Obsolete("Please use GetTimeSignatureChanges and GetTimeSignatureAtTime methods.")]
+        [Obsolete("OBS3")]
         public ValueLine<TimeSignature> TimeSignature
         {
             get { return _timeSignatureLine; }
@@ -70,7 +70,7 @@ namespace Melanchall.DryWetMidi.Interaction
         /// <summary>
         /// Gets an object that holds changes of the tempo through the time.
         /// </summary>
-        [Obsolete("Please use GetTempoChanges and GetTempoAtTime methods.")]
+        [Obsolete("OBS3")]
         public ValueLine<Tempo> Tempo
         {
             get { return _tempoLine; }

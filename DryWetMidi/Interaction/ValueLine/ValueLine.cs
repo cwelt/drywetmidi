@@ -6,6 +6,7 @@ using System.Linq;
 
 namespace Melanchall.DryWetMidi.Interaction
 {
+    // Do internal after O3 lifetime
     /// <summary>
     /// Represents timeline of a parameter's value.
     /// </summary>
@@ -50,7 +51,7 @@ namespace Melanchall.DryWetMidi.Interaction
         /// <param name="time">Time to get a value at.</param>
         /// <returns>Parameter's value at the <paramref name="time"/>.</returns>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="time"/> is negative.</exception>
-        [Obsolete("Please use TempoMap.GetTempoAtTime and TempoMap.GetTimeSignatureAtTime.")]
+        [Obsolete("OBS3")]
         public TValue AtTime(long time)
         {
             ThrowIfTimeArgument.IsNegative(nameof(time), time);
