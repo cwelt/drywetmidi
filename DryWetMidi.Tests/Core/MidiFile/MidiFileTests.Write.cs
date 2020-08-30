@@ -14,7 +14,7 @@ namespace Melanchall.DryWetMidi.Tests.Core
     {
         #region Test methods
 
-        [Obsolete]
+        [Obsolete("OBS1")]
         [Test]
         public void Write_Compression_NoCompression_Obsolete()
         {
@@ -29,7 +29,7 @@ namespace Melanchall.DryWetMidi.Tests.Core
                 (fileInfo1, fileInfo2) => Assert.AreEqual(fileInfo1.Length, fileInfo2.Length, "File size is invalid."));
         }
 
-        [Obsolete]
+        [Obsolete("OBS1")]
         [Test]
         public void Write_Compression_NoteOffAsSilentNoteOn_Obsolete()
         {
@@ -48,7 +48,7 @@ namespace Melanchall.DryWetMidi.Tests.Core
                 });
         }
 
-        [Obsolete]
+        [Obsolete("OBS1")]
         [Test]
         public void Write_Compression_UseRunningStatus_Obsolete()
         {
@@ -65,7 +65,7 @@ namespace Melanchall.DryWetMidi.Tests.Core
                 (fileInfo1, fileInfo2) => Assert.Less(fileInfo2.Length, fileInfo1.Length, "File size is invalid."));
         }
 
-        [Obsolete]
+        [Obsolete("OBS1")]
         [Test]
         public void Write_Compression_DeleteUnknownMetaEvents_Obsolete()
         {
@@ -92,7 +92,7 @@ namespace Melanchall.DryWetMidi.Tests.Core
                 });
         }
 
-        [Obsolete]
+        [Obsolete("OBS1")]
         [Test]
         public void Write_Compression_DeleteDefaultKeySignature_Obsolete()
         {
@@ -128,7 +128,7 @@ namespace Melanchall.DryWetMidi.Tests.Core
                 });
         }
 
-        [Obsolete]
+        [Obsolete("OBS1")]
         [Test]
         public void Write_Compression_DeleteDefaultSetTempo_Obsolete()
         {
@@ -164,7 +164,7 @@ namespace Melanchall.DryWetMidi.Tests.Core
                 });
         }
 
-        [Obsolete]
+        [Obsolete("OBS1")]
         [Test]
         public void Write_Compression_DeleteDefaultTimeSignature_Obsolete()
         {
@@ -200,7 +200,7 @@ namespace Melanchall.DryWetMidi.Tests.Core
                 });
         }
 
-        [Obsolete]
+        [Obsolete("OBS1")]
         [Test]
         public void Write_Compression_DeleteUnknownChunks_Obsolete()
         {

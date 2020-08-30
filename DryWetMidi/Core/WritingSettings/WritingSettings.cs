@@ -35,7 +35,7 @@ namespace Melanchall.DryWetMidi.Core
         /// combine separate rules as you want.</para>
         /// </remarks>
         /// <exception cref="InvalidEnumArgumentException"><paramref name="value"/> specified an invalid value.</exception>
-        [Obsolete("API is obsolete and will be removed in future releases. Please use properties of WritingSettings to set specific flags.")]
+        [Obsolete("OBS1")]
         public CompressionPolicy CompressionPolicy
         {
             get

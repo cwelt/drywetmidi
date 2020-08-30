@@ -91,7 +91,7 @@ namespace Melanchall.DryWetMidi.Core
         /// MIDI files it shouldn't be a problem to place entire file to memory since the size of most MIDI
         /// files is relatively small.</para>
         /// </remarks>
-        [Obsolete("Please use BufferingPolicy.BufferAllData.")]
+        [Obsolete("OBS2")]
         public bool ReadFromMemory
         {
             get { return BufferingPolicy == BufferingPolicy.BufferAllData; }

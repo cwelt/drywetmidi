@@ -573,7 +573,7 @@ namespace Melanchall.DryWetMidi.Tests.Core
             Assert.AreEqual(text, textEvent.Text, "Text decoded incorrectly.");
         }
 
-        [Obsolete]
+        [Obsolete("OBS2")]
         [Test]
         public void Read_ReadFromMemory()
         {
