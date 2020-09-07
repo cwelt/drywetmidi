@@ -614,62 +614,25 @@ namespace Melanchall.DryWetMidi.Core
 
             try
             {
-                var chunkId = reader.ReadString(MidiChunk.IdLength);
-                if (chunkId.Length < MidiChunk.IdLength)
+                var chunkId = MidiChunkReader.ReadChunkId(reader, settings);
+                if (string.IsNullOrEmpty(chunkId))
+                    return null;
+
+                //
+
+                if (chunkId == TrackChunk.Id && settings.UseReadingHandlers)
                 {
-                    switch (settings.NotEnoughBytesPolicy)
+                    foreach (var handler in trackChunkReadingHandlers)
                     {
-                        case NotEnoughBytesPolicy.Abort:
-                            throw new NotEnoughBytesException("Chunk ID cannot be read since the reader's underlying stream doesn't have enough bytes.",
-                                                              MidiChunk.IdLength,
-                                                              chunkId.Length);
-                        case NotEnoughBytesPolicy.Ignore:
-                            return null;
+                        handler.OnStartTrackChunkReading();
                     }
                 }
 
                 //
 
-                switch (chunkId)
-                {
-                    case HeaderChunk.Id:
-                        chunk = new HeaderChunk();
-                        break;
-                    case TrackChunk.Id:
-                        if (settings.UseReadingHandlers)
-                        {
-                            foreach (var handler in trackChunkReadingHandlers)
-                            {
-                                handler.OnStartTrackChunkReading();
-                            }
-                        }
-
-                        chunk = new TrackChunk();
-                        break;
-                    default:
-                        chunk = TryCreateChunk(chunkId, settings.CustomChunkTypes);
-                        break;
-                }
-
-                //
-
+                chunk = MidiChunkReader.CreateChunk(chunkId, reader, settings);
                 if (chunk == null)
-                {
-                    switch (settings.UnknownChunkIdPolicy)
-                    {
-                        case UnknownChunkIdPolicy.ReadAsUnknownChunk:
-                            chunk = new UnknownChunk(chunkId);
-                            break;
-
-                        case UnknownChunkIdPolicy.Skip:
-                            var size = reader.ReadDword();
-                            reader.Position += size;
-                            return null;
-
-                        case UnknownChunkIdPolicy.Abort:
-                            throw new UnknownChunkException(chunkId);
-                    }
-                }
+                    return null;
 
                 //
 
